@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using rentid.Entities;
 
-namespace rentid.Context
+namespace rentid.Contexts
 {
     public class appDbContext:IdentityDbContext<appUser,appRole,string>
     {
-        public appDbContext(DbContextOptions<appDbContext> option):base(option)
+        public appDbContext(DbContextOptions<appDbContext> options):base(options)
         {
             
         }
