@@ -7,7 +7,7 @@ using rentid.ViewModels;
 
 namespace rentid.Controllers
 {
-    [Route("bireysel-kayit")]
+    
     public class bireysel_kayitController:Controller
     {
         private readonly UserManager<appUser> userManager;
@@ -15,12 +15,14 @@ namespace rentid.Controllers
         {
             this.userManager = userManager;
         }
+        [Route("/bireysel-kayit")]
         public IActionResult index()
         {
           //TODO: Implement Realistic Implementation
           return View();
         }
         [HttpPost]
+        [Route("/bireysel-kayit")]
         public async Task<IActionResult> index(bireyselKayitVM vm)
         {
           if (ModelState.IsValid)
@@ -39,6 +41,14 @@ namespace rentid.Controllers
               {
                   //Kayıt anında rol tanımlama
                   await userManager.AddToRoleAsync(user,"Bireysel");
+
+                  string emailConfirmToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                  string link = Url.Action("email_dogrulama","bireysel_kayit" , new {
+                    userId = user.Id,
+                    token = emailConfirmToken
+                  },HttpContext.Request.Scheme);
+                  HelperMethods.emailDogrulama.emailConfirmSendMail(link,user.Email);
+
                   return RedirectToAction("index","giris");
               }
               else{
@@ -50,6 +60,26 @@ namespace rentid.Controllers
               
           }
           return View(vm);
+        }
+
+        public async Task<IActionResult> email_dogrulama(string userid,string token)
+        {
+          appUser user = await userManager.FindByIdAsync(userid);
+
+          if (user != null)
+          {
+              IdentityResult res = await userManager.ConfirmEmailAsync(user,token);
+
+              if (res.Succeeded)
+              {
+                  return RedirectToAction("index","giris");
+              }
+              else{
+                ModelState.AddModelError("","*Hata ile karşılaşıldı. Lütfen hizmet sağlayıcınızla iletişime geçin!");
+              }
+          }
+
+          return View();
         }
     }
 }
